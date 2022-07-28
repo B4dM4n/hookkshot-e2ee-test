@@ -1,0 +1,81 @@
+services:
+  volume-setup:
+    build: ./volume-setup
+    volumes:
+      - synapse-data:/volumes/synapse-data
+
+  synapse:
+    # image: matrixdotorg/synapse:v1.64.0rc1
+    image: matrixdotorg/synapse:v1.63.1
+    volumes:
+      - synapse-data:/volume
+      - ./config/synapse:/data:ro
+    ports:
+      - "127.0.0.1:8008:8008"
+    networks:
+      matrix:
+    depends_on:
+      volume-setup:
+        condition: service_completed_successfully
+
+  element:
+    image: vectorim/element-web
+    ports:
+      - "127.0.0.1:8000:80"
+    volumes:
+      - ./config/element/config.json:/app/config.json
+    networks:
+      matrix:
+
+  redis:
+    image: redis
+    networks:
+      matrix:
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes", "--save", ""]
+
+  hookshot:
+    image: localhost/matrix-hookshot
+    pull_policy: never
+    build: https://github.com/B4dM4n/matrix-hookshot.git#native-e2ee
+    networks:
+      matrix:
+    volumes:
+      - hookshot-data:/data
+      - ./config/hookshot/config.yml:/data/config.yml:ro
+      - ./config/hookshot/passkey.pem:/data/passkey.pem:ro
+      - ./config/synapse/appservices/hookshot.yaml:/data/registration.yml:ro
+    depends_on:
+      redis:
+        condition: service_started
+      synapse:
+        condition: service_healthy
+
+  enctest:
+    build: ./enctest
+    networks:
+      matrix:
+    volumes:
+      - enctest-data:/data
+      - ./config/enctest/config.yml:/data/config.yml:ro
+      # - ./config/synapse/appservices/enctest.yaml:/registration/registration.yml:ro
+    depends_on:
+      synapse:
+        condition: service_healthy
+
+volumes:
+  enctest-data:
+  hookshot-data:
+  redis-data:
+  synapse-data:
+
+networks:
+  matrix:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-matrix
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.driver.mtu: 1500
+      com.docker.network.bridge.host_binding_ipv4: 0.0.0.0
+      com.docker.network.bridge.enable_ip_masquerade: "true"

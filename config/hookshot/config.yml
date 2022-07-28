@@ -1,0 +1,72 @@
+# This is an example configuration file
+
+bridge:
+  # Basic homeserver configuration
+  #
+  domain: local
+  url: http://synapse:8008
+  port: 9993
+  bindAddress: 0.0.0.0
+generic:
+  # (Optional) Support for generic webhook events.
+  #'allowJsTransformationFunctions' will allow users to write short transformation snippets in code, and thus is unsafe in untrusted environments
+  #
+  #
+  enabled: true
+  enableHttpGet: false
+  urlPrefix: https://example.com/webhook/
+  userIdPrefix: _webhooks_
+  allowJsTransformationFunctions: false
+  waitForComplete: false
+passFile:
+  # A passkey used to encrypt tokens stored inside the bridge.
+  # Run openssl genpkey -out passkey.pem -outform PEM -algorithm RSA -pkeyopt rsa_keygen_bits:4096 to generate
+  #
+  /data/passkey.pem
+bot:
+  # (Optional) Define profile information for the bot user
+  #
+  displayname: Hookshot Bot
+  avatar: mxc://half-shot.uk/2876e89ccade4cb615e210c458e2a7a6883fe17d
+queue:
+  # (Optional) Message queue / cache configuration options for large scale deployments
+  #
+  monolithic: true
+  port: 6379
+  host: redis
+logging:
+  # (Optional) Logging settings. You can have a severity debug,info,warn,error
+  #
+  level: debug
+  colorize: true
+  json: false
+  timestampFormat: HH:mm:ss:SSS
+permissions:
+  # (Optional) Permissions for using the bridge. See docs/setup.md#permissions for help
+  #
+  - actor: local
+    services:
+      - service: "*"
+        level: admin
+listeners:
+  # (Optional) HTTP Listener configuration.
+  # Bind resource endpoints to ports and addresses.
+  # 'port' must be specified. Each listener must listen on a unique port.
+  # 'bindAddress' will default to '127.0.0.1' if not specified, which may not be suited to Docker environments.
+  # 'resources' may be any of webhooks, widgets, metrics, provisioning
+  #
+  - port: 9000
+    bindAddress: 0.0.0.0
+    resources:
+      - webhooks
+  - port: 9001
+    bindAddress: 127.0.0.1
+    resources:
+      - metrics
+      - provisioning
+  - port: 9002
+    bindAddress: 0.0.0.0
+    resources:
+      - widgets
+encryption:
+  storagePath: /data/encryption

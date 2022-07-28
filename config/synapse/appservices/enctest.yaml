@@ -1,0 +1,11 @@
+id: enctest
+hs_token: change_me
+as_token: change_me
+url: http://enctest:9994
+sender_localpart: encbot
+namespaces:
+  users:
+    - exclusive: true
+      regex: "@crypto.*:local"
+
+de.sorunome.msc2409.push_ephemeral: true

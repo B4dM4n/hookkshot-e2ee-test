@@ -1,0 +1,5 @@
+bridge:
+  domain: local
+  url: http://synapse:8008
+  port: 9994
+  bindAddress: 0.0.0.0
